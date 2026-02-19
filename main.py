@@ -16,6 +16,7 @@
 
 
 # =========== AFD E VALIDAÇÃO =============
+from collections import deque
 
 # definindo as estruturas 
 estados = []
@@ -136,3 +137,93 @@ if estados_atuais & estados_finais:
     print("Reconheceu")
 else:
     print("Não reconheceu")
+
+# ============ Conversão AFND para AFD ==================
+# estado inicial do AFD
+estado_inicial_afd = frozenset([estado_inicial])
+
+# estruturas do AFD
+fila = deque([estado_inicial_afd])
+estados_afd = {estado_inicial_afd}
+func_transicao_afd = {}
+ordem_descoberta = [estado_inicial_afd]  
+
+# ---------- LOOP PRINCIPAL ----------
+while fila:
+    estado_atual = fila.popleft()
+    
+
+    for simbolo in alfabeto:
+
+        novo_estado = set()
+
+        # união das transições do AFND
+        for estado in estado_atual:
+            novo_estado |= func_transicao.get((estado, simbolo), set())
+
+        novo_estado = frozenset(novo_estado)
+
+        # salva transição do AFD
+        func_transicao_afd[(estado_atual, simbolo)] = novo_estado
+
+        # se descobriu novo estado
+        if novo_estado not in estados_afd:
+            estados_afd.add(novo_estado)
+            fila.append(novo_estado)
+            ordem_descoberta.append(novo_estado)
+
+# ---------- estados finais do AFD ----------
+estados_finais_afd = set()
+
+for estado in estados_afd:
+    if estado & estados_finais:
+        estados_finais_afd.add(estado)
+
+# ========= Funções para impressão organizada =========
+
+def mostrar_estado(estado):
+    """Mostra o conjunto ordenado"""
+    if not estado:
+        return "∅"
+    return "{" + ",".join(sorted(estado)) + "}"
+
+
+def marcar_estado(e):
+    """Marca estado inicial (->) e final (*)"""
+    texto = ""
+
+    if e == estado_inicial_afd:
+        texto += "->"
+
+    if e in estados_finais_afd:
+        texto += "*"
+
+    texto += mostrar_estado(e)
+    return texto
+
+lista_estados = ordem_descoberta
+
+# ========= Tabela do AFD =========
+
+print("\nTabela do AFD:\n")
+
+# Cabeçalho
+print("{:<20}".format("δ'"), end="")
+for simbolo in alfabeto:
+    print("{:<20}".format(simbolo), end="")
+print()
+
+# Linhas
+for estado in lista_estados:
+
+    print("{:<20}".format(marcar_estado(estado)), end="")
+
+    for simbolo in alfabeto:
+        destino = func_transicao_afd.get(
+            (estado, simbolo),
+            frozenset()
+        )
+
+        print("{:<20}".format(mostrar_estado(destino)), end="")
+
+    print()
