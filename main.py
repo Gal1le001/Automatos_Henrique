@@ -126,14 +126,30 @@ def minimizar_afd(estados, alfabeto, transicoes, inicial, finais):
 # ================= LÓGICA DE GRAMÁTICA =================
 def verificar_tipo_gramatica(variaveis, terminais, producoes):
     for esquerda, regras in producoes.items():
-        if esquerda not in variaveis: return "Inválida"
+        if esquerda not in variaveis:
+            return "Inválida"
+
         for regra in regras:
-            if regra == "ε": continue
+            regra = regra.strip()
+
+            # Aceita várias formas de epsilon
+            if regra in ["ε", "e", "eps", "epsilon", ""]:
+                continue
+
+            # Produção A -> a
             if len(regra) == 1:
-                if regra not in terminais: return "GLC"
+                if regra not in terminais:
+                    return "GLC"
+
+            # Produção A -> aB
             elif len(regra) == 2:
-                if regra[0] not in terminais or regra[1] not in variaveis: return "GLC"
-            else: return "GLC"
+                if regra[0] not in terminais or regra[1] not in variaveis:
+                    return "GLC"
+
+            # Qualquer outra forma já é GLC
+            else:
+                return "GLC"
+
     return "GR (Gramática Regular)"
 
 def converter_gr_para_afnd_logica(variaveis, terminais, producoes, inicial):
@@ -144,7 +160,7 @@ def converter_gr_para_afnd_logica(variaveis, terminais, producoes, inicial):
 
     for nt, regras in producoes.items():
         for regra in regras:
-            if regra == "ε" or regra == "":
+            if regra in ["ε", "e", "eps", "epsilon", ""]:
                 finais_n.add(nt)
             elif len(regra) == 1 and regra in terminais:
                 transicoes_n.setdefault((nt, regra), set()).add(estado_final_extra)
@@ -166,7 +182,7 @@ def executar_gramatica():
         if "->" not in entrada: continue
         esq, dir_p = entrada.split("->")
         esq = esq.strip()
-        alts = [a.strip() for a in dir_p.split("|")]
+        alts = [a.strip().replace(" ", "") for a in dir_p.split("|")]
         if esq not in producoes: producoes[esq] = []
         producoes[esq].extend(alts)
 
